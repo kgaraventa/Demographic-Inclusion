@@ -1,11 +1,11 @@
 ---
 title: "Demographic Summary"
-subtitle: "Training: Essential Elements"
-date: "July-September 2023"
+subtitle: "Training: Well-being Needs of Children and Youth"
+date: "October 2022-June 2023"
 
 params:
-  quarter: "2325Q1"
-  training: "EE"
+  quarter: "2325Q2"
+  training: "WB"
 
 output: 
   html_document:
@@ -123,8 +123,6 @@ gender_self_describe %>%
   tab_options(table.align = "left") %>% 
   cols_label(describe_gender = md("**Describe Gender**"))
 ```
-
-\newpage
 
 ### Racial Identity
 
