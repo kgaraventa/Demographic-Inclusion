@@ -1,7 +1,7 @@
 ---
 title: "Inclusion Summary"
 subtitle: "Training: Certification and Adoption Worker Training"
-date: "January-March 2023"
+date: "October 2022-June 2023"
 
 params:
   cohort: "2123Q7"
@@ -73,7 +73,10 @@ number_respondents_inclusion <- ca_inclusion %>%
   pull(n)
 ```
 
-Number of Respondents in Quarter: **`r number_respondents_inclusion`**
+Training Dates: 
+February 21-March 3, 2022
+
+Number of Respondents: **`r number_respondents_inclusion`**
 
 *Compiled from the Overall evaluations given at the end of **each** week.*
 
@@ -112,7 +115,7 @@ ca_inclusion_scales %>%
                      "Disagree")),
          rating = fct_explicit_na(rating, na_level = "missing")) %>% 
   ggplot(aes(x = pct,
-             y = rating,
+             y = cohort,
              fill = rating)) +
     scale_fill_manual(values = c(
                      "Agree" = psu_green,
@@ -121,13 +124,15 @@ ca_inclusion_scales %>%
                      "Somewhat Disagree" = psu_yellow,
                      "Disagree" = psu_orange)) +
   geom_col(show.legend = TRUE,
-           position = "dodge") +
+           position = "fill",
+           width = 0.5) +
   geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
-            hjust = -0.2,
-            size = 3) +
+            size = 4,
+            position = position_fill(vjust = 0.5)) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
+  scale_y_discrete(labels = NULL) +
   labs(title = "I felt respected based on my identities by <span style = 'color: #008ac1'>trainers/staff</span>",
        fill = "") +
   theme_minimal() +
@@ -152,7 +157,7 @@ ca_inclusion_scales %>%
                      "Disagree")),
          rating = fct_explicit_na(rating, na_level = "missing")) %>% 
   ggplot(aes(x = pct,
-             y = rating,
+             y = cohort,
              fill = rating)) +
     scale_fill_manual(values = c(
                      "Agree" = psu_green,
@@ -161,13 +166,15 @@ ca_inclusion_scales %>%
                      "Somewhat Disagree" = psu_yellow,
                      "Disagree" = psu_orange)) +
   geom_col(show.legend = TRUE,
-           position = "dodge") +
+           position = "fill",
+           width = 0.5) +
   geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
-            hjust = -0.2,
-            size = 3) +
+            size = 4,
+            position = position_fill(vjust = 0.5)) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
+  scale_y_discrete(labels = NULL) +
   labs(title = "I felt respected based on my identities by <span style = 'color: #650360'>peers</span>",
        fill = "") +
   theme_minimal() +
