@@ -1,0 +1,243 @@
+---
+title: "Inclusion Summary"
+subtitle: "Training: Well-being Needs of Children and Youth"
+date: "July-September 2023"
+
+params:
+  cohort: "2325Q1"
+
+output: 
+  html_document:
+    df_print: paged
+    fig_width: 8
+---
+<!-- NEEDED INFORMATION - LOOK HERE
+To make this work, we need to change the names of the cohorts of the quarter to the same name.
+Do this in the "r excel file" chunk (starting line 67). Change name to YYYYQN (ex. 2325Q1).
+Update cohort parameter in YAML to new quarter cohort.-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      cache = FALSE)
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(ggthemes)
+library(hrbrthemes)
+library(readxl)
+library(ggtext)
+library(ggalt)
+library(ragg)
+library(systemfonts)
+library(gt)
+library(knitr)
+library(pagedown)
+library(dplyr)
+library(scales)
+library(lubridate)
+library(ggplot2)
+library(ggrepel)
+```
+
+```{r colors, include=FALSE}
+psu_green <- "#6d8d24"
+psu_electricgreen <- "#cfd82d"
+psu_forestgreen <- "#213921"
+psu_blue <- "#008ac1"
+psu_lightblue <- "#a5dff9"
+psu_sand <- "#e8d3a2"
+psu_stone <- "#8a8a67"
+psu_yellow <- "#ffc20e"
+psu_red <- "#e64927"
+psu_orange <- "#f68b1f"
+psu_purple <- "#650360"
+```
+
+```{r excel file, include=FALSE}
+wb_inclusion <- read_excel(path = "I:\\Staff\\GSSW\\SALEM\\DATA ENTRY\\2. Well-being\\WB DB 202307.xlsx",
+                                   sheet = "overall") %>% 
+  clean_names() %>% 
+  select(cohort, id_trainer, id_other, id_comment) %>% 
+  mutate(cohort = as.character(cohort)) %>% 
+  mutate(cohort = if_else(cohort == "202307", "2325Q1", cohort))
+```
+
+```{r number respondents, include=FALSE}
+number_respondents_inclusion <- wb_inclusion %>% 
+  filter(cohort == params$cohort) %>% 
+  count(cohort) %>% 
+  pull(n)
+```
+
+Number of Respondents in Quarter: **`r number_respondents_inclusion`**
+
+```{r}
+wb_inclusion_scales <- wb_inclusion %>%
+  select(-id_comment) %>% 
+  pivot_longer(cols = -cohort,
+               names_to = "scale",
+               values_to = "rating",
+               values_drop_na = TRUE)
+```
+
+```{r trainer rating prep}
+avg_trainers <- wb_inclusion_scales %>%
+  filter(cohort == params$cohort,
+         scale == "id_trainer") %>%
+  drop_na() %>% 
+  summarize(avg_trainers = mean(rating)) %>% 
+  mutate(rating_round = round(avg_trainers,1)) %>%
+  pull(rating_round)
+```
+
+$~$
+
+$~$
+
+#### I felt respected based on my identities by <span style = 'color: #008ac1'>trainers/staff</span>
+7-point anchored scale from Not at all Respected to Extremely Respected
+
+Average = **`r avg_trainers`**
+
+```{r trainers, fig.height = 2, fig.width = 8}
+wb_inclusion_scales %>%
+  filter(cohort == params$cohort,
+         scale == "id_trainer") %>% 
+  drop_na() %>% 
+  count(cohort, scale, rating) %>% 
+  mutate(pct = n / sum(n)) %>%
+  mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
+  ggplot(aes(x = pct,
+             y = cohort,
+             fill = rating)) +
+  scale_fill_gradient2(limits = c(1,7),
+                      low = psu_red,
+                      mid = psu_sand,
+                      high = psu_forestgreen,
+                      midpoint = 4,
+                      space = "Lab",
+                      guide = "colorbar",
+                      aesthetics = "fill") +
+  geom_col(show.legend = TRUE,
+           position = "fill",
+           width = 0.5) +
+  geom_text(aes(label = pct_display),
+            color = "white",
+            size = 4,
+            position = position_fill(vjust = 0.5),
+            min.segment.length = 0.1) +
+  scale_x_continuous(expand = expansion(add = c(0,0.2)),
+                     labels = NULL) +
+  scale_y_discrete(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```
+
+```{r peer rating prep}
+avg_peers <- wb_inclusion_scales %>%
+  filter(cohort == params$cohort,
+         scale == "id_other") %>%
+  drop_na() %>% 
+  summarize(avg_peers = mean(rating)) %>% 
+  mutate(rating_round = round(avg_peers,1)) %>%
+  pull(rating_round)
+```
+
+$~$
+
+#### I felt respected based on my identities by <span style = 'color: #650360'>peers</span>
+7-point anchored scale from Not at all Respected to Extremely Respected
+
+Average = **`r avg_peers`**
+
+```{r peers, fig.height = 2, fig.width = 7}
+wb_inclusion_scales %>%
+  filter(cohort == params$cohort,
+         scale == "id_other") %>% 
+  drop_na() %>% 
+  count(cohort, scale, rating) %>% 
+  mutate(pct = n / sum(n)) %>%
+  mutate(pct_display = str_glue("{rating} ({percent(pct, accuracy = 1)})")) %>% 
+  ggplot(aes(x = pct,
+             y = cohort,
+             fill = rating)) +
+  scale_fill_gradient2(limits = c(1,7),
+                      low = psu_red,
+                      mid = psu_sand,
+                      high = psu_forestgreen,
+                      midpoint = 4,
+                      space = "Lab",
+                      guide = "colorbar",
+                      aesthetics = "fill") +
+  geom_col(show.legend = TRUE,
+           position = "fill",
+           width = 0.5) +
+  geom_text_repel(aes(label = pct_display),
+            color = "white",
+            size = 4,
+            position = position_fill(vjust = 0.5),
+            min.segment.length = 0.1) +
+  scale_x_continuous(expand = expansion(add = c(0,0.2)),
+                     labels = NULL) +
+  scale_y_discrete(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```
+
+\newpage
+
+### Open-Ended Question Responses
+
+*Responses on Scale Questions*
+
+```{r high end responses}
+wb_inclusion %>% 
+  filter(cohort == params$cohort,
+         id_trainer %in% c("5", "6", "7")|id_other %in% c("5", "6", "7")) %>% 
+  select(id_comment) %>% 
+  drop_na()  %>% 
+  distinct() %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(
+    id_comment = md("**Corresponding Responses for Ratings of 5, 6, or 7**"))
+```
+
+```{r middle response}
+wb_inclusion %>% 
+  filter(cohort == params$cohort,
+         id_trainer == "4"|id_other == "4") %>% 
+  select(id_comment) %>% 
+  drop_na()  %>% 
+  distinct() %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(
+    id_comment = md("**Corresponding Responses for Ratings of 4**"))
+```
+
+```{r low end responses}
+wb_inclusion %>% 
+  filter(cohort == params$cohort,
+         id_trainer %in% c("1", "2", "3")|id_other %in% c("1", "2", "3")) %>% 
+  select(id_comment) %>% 
+  drop_na()  %>% 
+  distinct() %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(
+    id_comment = md("**Corresponding Responses for Ratings of 1, 2, or 3**"))
+```

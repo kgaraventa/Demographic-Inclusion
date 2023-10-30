@@ -1,0 +1,217 @@
+---
+title: "Eval Code"
+author: "Kayley Garaventa"
+date: "2023-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+number_of_respondents_overall <- ee_overall %>% 
+  filter(cohort == params$cohort,
+         week == params$week) %>% 
+  count(cohort) %>% 
+  pull(n)
+```
+
+```{r, include=FALSE}
+number_registered <- ee_registered %>%
+  filter(cohort == params$cohort) %>%
+  pull(registered)
+```
+
+
+| Respondents: **`r number_of_respondents_overall`**
+| Registered: **`r number_registered`**
+| Response Rate*:  **`r scales::label_percent()(number_of_respondents_overall/number_registered)`**
+|                       *does not account for makeups or absences
+
+
+```{r}
+ee_overallscales <- ee_overall  %>%
+  select(cohort, week, overall, usefulness) %>% 
+  mutate(overall = factor(case_when(
+    overall == "5" ~ "Excellent",
+    overall == "4" ~ "Very Good",
+    overall == "3" ~ "Good",
+    overall == "2" ~ "Fair",
+    overall == "1" ~ "Needs Improvement",
+    TRUE ~ NA_character_))) %>% 
+  mutate(usefulness = factor(case_when(
+    usefulness == "5" ~ "Very Useful",
+    usefulness == "4" ~ "Mostly Useful",
+    usefulness == "3" ~ "Somewhat Useful",
+    usefulness == "2" ~ "Slightly Useful",
+    usefulness == "1" ~ "Not At All Useful",
+    TRUE ~ NA_character_))) %>%
+  pivot_longer(cols = -c(cohort,week),
+               names_to = "scale",
+               values_to = "rating",
+               values_drop_na = TRUE) %>%
+  count(cohort, week, scale, rating) %>% 
+  group_by(cohort, week, scale) %>% 
+  mutate(pct = n / sum(n))
+```
+
+
+### Overall Rating
+
+```{r overall, fig.height = 3.5}
+ee_overallscales %>% 
+  filter(cohort == params$cohort,
+         week == params$week,
+         scale == "overall") %>% 
+  drop_na() %>% 
+  mutate(rating = fct_relevel(rating, c("Excellent",
+                     "Very Good",
+                     "Good",
+                     "Fair",
+                     "Needs Improvement")),
+         rating = fct_explicit_na(rating, na_level = "missing")) %>% 
+  ggplot(aes(x = pct,
+             y = rating,
+             fill = rating)) +
+    scale_fill_manual(values = c(
+                     "Excellent" = psu_green,
+                     "Very Good" = psu_electricgreen,
+                     "Good" = psu_sand,
+                     "Fair" = psu_yellow,
+                     "Needs Improvement" = psu_orange)) +
+  geom_col(show.legend = FALSE,
+           position = "dodge") +
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
+            color = "black",
+            hjust = 0,
+            size = 3) +
+  scale_x_continuous(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown())
+
+```
+
+### Usefulness Rating
+
+```{r usefulness, fig.height = 3.5}
+ee_overallscales %>% 
+  filter(cohort == params$cohort,
+         week == params$week,
+         scale == "usefulness") %>% 
+  drop_na() %>% 
+  mutate(rating = fct_relevel(rating, c("Very Useful",
+                     "Mostly Useful",
+                     "Somewhat Useful",
+                     "Slightly Useful",
+                     "Not At All Useful")),
+         rating = fct_explicit_na(rating, na_level = "missing")) %>% 
+  ggplot(aes(x = pct,
+             y = rating,
+             fill = rating)) +
+    scale_fill_manual(values = c(
+                     "Very Useful" = psu_green,
+                     "Mostly Useful" = psu_electricgreen,
+                     "Somewhat Useful" = psu_sand,
+                     "Slightly Useful" = psu_yellow,
+                     "Not At All Useful" = psu_orange)) +
+  geom_col(show.legend = FALSE,
+           position = "dodge") +
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
+            color = "black",
+            hjust = 0,
+            size = 3) +
+  scale_x_continuous(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown())
+
+```
+
+### Participant Comments
+
+```{r}
+ ee_overall %>%
+  filter(cohort == params$cohort,
+         week == params$week) %>%
+   select(liked_best) %>%
+  drop_na()  %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(
+    liked_best = md("**Liked Best**"))
+  
+```
+
+
+```{r}
+ee_overall %>%
+  filter(cohort == params$cohort,
+         week == params$week) %>% 
+  select(to_improve) %>% 
+  drop_na() %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>%
+  cols_label(
+    to_improve = md("**To Improve**"))
+```
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(dplyr)
+library(scales)
+library(ggtext)
+library(ragg)
+library(systemfonts)
+library(ggalt)
+library(ggplot2)
+
+ee_demographics <- read_csv("KRProj_EE_Demographics_DB.csv") %>% 
+  clean_names()
+```
+
+```{r}
+clean_ee_demographics <- ee_demographics %>%
+  mutate(group_name = recode(group_name, "EE 2022 October 21" = "October 2022",
+                            "EE 2022 November 18" = "November 2022",
+                            "EE 2022 12 16" = "December 2022",
+                            "EE 2023 01" = "January 2023",
+                            "EE 2023 02" = "February 2023")) %>% 
+  mutate(role = recode(role, "A" = "Screener",
+                            "B" = "CPS",
+                            "C" = "Permanency",
+                            "D" = "Certification/Adoption",
+                            "E" = "Not Assigned Yet",
+                            "F" = "Tribal Child Welfare Employee",
+                            "G" = "Intern/Student",
+                            "H" = "Other")) %>%
+  mutate(role = na_if(role, "No answer")) %>% 
+  drop_na(role) %>% 
+  mutate(group_name = fct_relevel(group_name, c("October 2022", "November 2022", "December 2022", "January 2023", "February 2023"))) %>% 
+  mutate(role = fct_relevel(role, c("Other", "Certification/Adoption", "Permanency", "CPS")))
+```
+
+```{r}
+clean_ee_demographics %>% 
+  count(group_name, role) %>%
+  ggplot(aes(x = n,
+             y = role, 
+             fill = role)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~group_name) +
+  labs(title = "More <span style = 'color: #984EA3'>CPS</span> workers completed Essential Elements training <br>over any other Child Welfare role") +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```

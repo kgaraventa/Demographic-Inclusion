@@ -1,0 +1,223 @@
+---
+title: "Demographic Summary"
+subtitle: "Training: Essential Elements"
+date: "October-December 2022"
+
+params:
+  quarter: "2022Q4"
+
+output: 
+  html_document:
+    df_print: paged
+    fig_width: 8
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      cache = FALSE)
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(ggthemes)
+library(hrbrthemes)
+library(readxl)
+library(ggtext)
+library(ggalt)
+library(ragg)
+library(systemfonts)
+library(gt)
+library(knitr)
+library(pagedown)
+library(dplyr)
+library(scales)
+library(lubridate)
+library(ggplot2)
+```
+
+```{r colors, include=FALSE}
+psu_green <- "#6d8d24"
+psu_electricgreen <- "#cfd82d"
+psu_forestgreen <- "#213921"
+psu_blue <- "#008ac1"
+psu_lightblue <- "#a5dff9"
+psu_sand <- "#e8d3a2"
+psu_stone <- "#8a8a67"
+psu_yellow <- "#ffc20e"
+psu_red <- "#e64927"
+psu_orange <- "#f68b1f"
+psu_purple <- "#650360"
+```
+
+```{r rds file, include=FALSE}
+ee_all_demos <- readRDS("data/clean-ee-all-demos.rds")
+```
+
+## Demographics Questions
+Asked at the end of the knowledge assessment
+
+```{r number trainees, include=FALSE}
+number_trainees <- ee_all_demos %>% 
+  filter(quarter == params$quarter) %>% 
+  count(quarter) %>% 
+  pull(n)
+```
+
+Number of Trainees in Quarter: **`r number_trainees`**
+
+### Gender Identity
+
+**Possible choices:** Cisgender Man, Cisgender Woman, Transgender Man, Transgender Woman, Non-binary Transgender, Non-binary Non-transgender, Prefer Not to Answer, and Prefer to Describe
+
+```{r gender identity table}
+gender_ee_demos <- ee_all_demos %>% 
+  filter(quarter == params$quarter) %>% 
+  select(identifier, gender_id) %>% 
+  mutate(gender_id = recode(gender_id, "No answer" = "Blank 'Missing Data'^")) %>%
+  mutate(gender_id = fct_relevel(gender_id, c("Cisgender Man", "Cisgender Woman", "Transgender Man", "Transgender Woman", "Non-binary Transgender", "Non-binary Non-transgender", "Prefer Not to Answer", "Prefer to Describe", "Blank 'Missing Data'^"))) %>% 
+  count(gender_id) %>% 
+  mutate(percent_total = n/sum(n)) 
+
+gender_ee_demos %>%  
+  select(-n) %>% 
+  gt() %>% 
+  tab_options(table.align = "left",
+              column_labels.background.color = psu_purple) %>% 
+  cols_label(gender_id = md("**Gender Identity**"),
+             percent_total = md("**Percent**")) %>% 
+  cols_align(align = "left",
+             columns = gender_id) %>% 
+  cols_align(align = "center",
+             columns = percent_total) %>% 
+  fmt_percent(columns = c(gender_id, percent_total), decimals = 1)
+```
+*^'Missing Data' reflects that no selection was made by participant*
+
+
+If you selected "prefer to describe," or if you'd like to provide more detail about your selection(s), please do so here:
+```{r gender self describe}
+gender_ee_self_describe <- ee_all_demos %>% 
+  filter(quarter == params$quarter) %>% 
+  select(identifier, describe_gender) %>% 
+  mutate(describe_gender = na_if(describe_gender, "No answer")) %>% 
+  mutate(describe_gender = na_if(describe_gender, "n/a")) %>% 
+  mutate(describe_gender = na_if(describe_gender, "N/A")) %>% 
+  mutate(describe_gender = na_if(describe_gender, "na")) %>% 
+  mutate(describe_gender = na_if(describe_gender, "/")) %>% 
+  drop_na(describe_gender)
+
+gender_ee_self_describe %>% 
+  select(describe_gender) %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(describe_gender = md("**Describe Gender**"))
+```
+
+### Racial Identity
+
+```{r racial identity table}
+race_ee_demos <- ee_all_demos %>% 
+  filter(quarter == params$quarter) %>% 
+  select(identifier, asian_named:white_named) %>%
+  pivot_longer(cols = -identifier,
+               names_to = "racial_group",
+               values_to = "selection") %>% 
+  mutate(racial_group = recode(racial_group, "asian_named" = "Asian",
+                             "aian_named" = "American Indian and Alaska Native",
+                             "blaa_named" = "Black and African American",
+                             "his_lat_named" = "Hispanic and Latino/a/e",
+                             "mid_east_named" = "Middle Eastern",
+                             "nhpi_named" = "Native Hawaiian and Pacific Islander",
+                             "white_named" = "White")) %>% 
+  separate_longer_delim(selection, delim = ", ") %>%  
+  mutate(selection = str_remove(selection, '["]')) %>% 
+  mutate(selection = str_remove(selection, '[(]'))%>% 
+  mutate(selection = str_remove(selection, '[)]')) %>% 
+  mutate(selection = str_remove(selection, '["]')) %>% 
+  mutate(selection = str_remove(selection, "^c")) %>% 
+  mutate(selection = str_remove(selection, "^or ")) %>% 
+  mutate(selection = na_if(selection, "N/A or No Answer")) %>% 
+  mutate(selection = na_if(selection, "N/A")) %>% 
+  mutate(selection = na_if(selection, "n/a")) %>% 
+  mutate(selection = na_if(selection, "No answer")) %>%
+  mutate(selection = na_if(selection, "NULL")) %>% 
+  drop_na(selection)
+  
+race_group_only <- race_ee_demos %>% 
+  select(-selection) %>% 
+  count(racial_group) %>% 
+  mutate(percent_total = n/sum(n)) 
+
+race_group_only %>%  
+  select(-n) %>% 
+  gt() %>% 
+  tab_options(table.align = "left",
+              column_labels.background.color = psu_green) %>% 
+  cols_label(racial_group = md("**Race/Origin**"),
+             percent_total = md("**Percent**")) %>% 
+  cols_align(align = "left",
+             columns = racial_group) %>% 
+  cols_align(align = "center",
+             columns = percent_total) %>% 
+  fmt_percent(columns = c(racial_group, percent_total), decimals = 1)
+```
+
+```{r number missing racial identity data}
+number_race_missing <- race_ee_demos %>% 
+  pivot_wider(id_cols = identifier,
+              names_from = racial_group,
+              values_from = selection) %>% 
+  mutate(identifier_true = TRUE) %>% 
+  count(identifier_true) %>% 
+  pull(n)
+```
+**Blank 'Missing Data'^: `r scales::label_percent()((number_trainees - number_race_missing)/number_trainees)`**
+
+*^'Missing Data' reflects that no selection was made by participant*
+
+
+If you selected "prefer to describe," or if you'd like to provide more detail about your selection(s), please do so here:
+
+```{r race self describe}
+race_ee_self_describe <- ee_all_demos %>% 
+  filter(quarter == params$quarter) %>% 
+  select(identifier, describe_race) %>% 
+  mutate(describe_race = na_if(describe_race, "No answer")) %>% 
+  mutate(describe_race = na_if(describe_race, "n/a")) %>% 
+  mutate(describe_race = na_if(describe_race, "N/A")) %>% 
+  mutate(describe_race = na_if(describe_race, "na")) %>% 
+  mutate(describe_race = na_if(describe_race, "NA")) %>% 
+  mutate(describe_race = na_if(describe_race, "/")) %>% 
+  drop_na(describe_race)
+
+race_ee_self_describe %>% 
+  select(describe_race) %>% 
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(describe_race = md("**Describe Race**"))
+```
+
+```{r specific racial/ethnic identity function, include=FALSE}
+race_eth_ident <- function(rei_to_filter) {
+  race_ee_demos %>% 
+    count(racial_group, selection) %>% 
+    mutate(percent_total = n/sum(n)) %>%
+    filter(racial_group == rei_to_filter) %>% 
+    arrange(desc(n)) %>% 
+    select(-c(racial_group, n)) %>% 
+    gt() %>% 
+    tab_header(title = rei_to_filter) %>% 
+    cols_label(selection = md("**Racial or Ethnic Identity**"),
+             percent_total = md("**Percent**")) %>% 
+    fmt_percent(columns = c(selection, percent_total), decimals = 1)
+}
+```
+
+```{r specific racial/ethnic identity table(s), include=FALSE}
+race_eth_ident("American Indian and Alaska Native")
+```
+
