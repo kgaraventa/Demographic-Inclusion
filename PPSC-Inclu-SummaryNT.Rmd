@@ -112,7 +112,7 @@ ppsc_inclusion_scales %>%
   drop_na() %>% 
   count(cohort, scale, rating) %>% 
   mutate(pct = n / sum(n)) %>%
-  mutate(pct_display = str_glue("{rating} ({percent(pct, accuracy = 1)})")) %>% 
+  mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
   ggplot(aes(x = pct,
              y = cohort,
              fill = rating)) +
@@ -130,7 +130,8 @@ ppsc_inclusion_scales %>%
   geom_text(aes(label = pct_display),
             color = "white",
             size = 4,
-            position = position_fill(vjust = 0.5)) +
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -166,7 +167,7 @@ ppsc_inclusion_scales %>%
   drop_na() %>% 
   count(cohort, scale, rating) %>% 
   mutate(pct = n / sum(n)) %>%
-  mutate(pct_display = str_glue("{rating} ({percent(pct, accuracy = 1)})")) %>% 
+  mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
   ggplot(aes(x = pct,
              y = cohort,
              fill = rating)) +
@@ -184,7 +185,8 @@ ppsc_inclusion_scales %>%
   geom_text(aes(label = pct_display),
             color = "white",
             size = 4,
-            position = position_fill(vjust = 0.5)) +
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -205,7 +207,7 @@ ppsc_inclusion_scales %>%
 ```{r high end responses}
 ppsc_inclusion %>% 
   filter(cohort == params$cohort,
-         id_trainer %in% c("5", "6", "7")|id_other %in% c("5", "6", "7")) %>% 
+         id_trainer %in% c("5", "6", "7")) %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -218,7 +220,7 @@ ppsc_inclusion %>%
 ```{r middle response}
 ppsc_inclusion %>% 
   filter(cohort == params$cohort,
-         id_trainer == "4"|id_other == "4") %>% 
+         id_trainer == "4") %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -231,7 +233,7 @@ ppsc_inclusion %>%
 ```{r low end responses}
 ppsc_inclusion %>% 
   filter(cohort == params$cohort,
-         id_trainer %in% c("1", "2", "3")|id_other %in% c("1", "2", "3")) %>% 
+         id_trainer %in% c("1", "2", "3")) %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
   distinct() %>% 
