@@ -142,11 +142,11 @@ tips_inclusion_scales %>%
   geom_col(show.legend = TRUE,
            position = "fill",
            width = 0.5) +
-  geom_text_repel(aes(label = scales::percent(pct, accuracy = 1)),
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
             position = position_fill(vjust = 0.5),
-            min.segment.length = 0.1) +
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -188,7 +188,8 @@ tips_inclusion_scales %>%
   geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
-            position = position_fill(vjust = 0.5)) +
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -209,7 +210,7 @@ tips_inclusion_scales %>%
 ```{r agree/somewhat agree responses}
 tips_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion %in% c("Agree", "Somewhat Agree")|peer_inclusion %in% c("Agree", "Somewhat Agree")) %>% 
+         staff_inclusion %in% c("Agree", "Somewhat Agree")) %>% 
   select(inclusion_text) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -222,7 +223,7 @@ tips_inclusion_labeled %>%
 ```{r neutral responses}
 tips_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion == "Neutral"|peer_inclusion == "Neutral") %>% 
+         staff_inclusion == "Neutral") %>% 
   select(inclusion_text) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -235,7 +236,7 @@ tips_inclusion_labeled %>%
 ```{r disagree/somewhat disagree responses}
 tips_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion %in% c("Disagree", "Somewhat Disagree")|peer_inclusion %in% c("Disagree", "Somewhat Disagree")) %>% 
+         staff_inclusion %in% c("Disagree", "Somewhat Disagree")) %>% 
   select(inclusion_text) %>% 
   drop_na()  %>%
   distinct() %>% 

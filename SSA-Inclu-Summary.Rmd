@@ -95,7 +95,8 @@ ssa_inclusion_labeled <- ssa_inclusion %>%
                               "2" = "Somewhat Disagree",
                               "3" = "Neutral",
                               "4" = "Somewhat Agree",
-                              "5" = "Agree"))
+                              "5" = "Agree")) %>% 
+  mutate(inclusion_text = na_if(inclusion_text, "N/A"))
 
 ssa_inclusion_scales <- ssa_inclusion_labeled %>%
   select(-inclusion_text) %>% 
@@ -130,11 +131,11 @@ ssa_inclusion_scales %>%
   geom_col(show.legend = TRUE,
            position = "fill",
            width = 0.5) +
-  geom_text_repel(aes(label = scales::percent(pct, accuracy = 1)),
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
             position = position_fill(vjust = 0.5),
-            min.segment.length = 0.1) +
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -173,11 +174,11 @@ ssa_inclusion_scales %>%
   geom_col(show.legend = TRUE,
            position = "fill",
            width = 0.5) +
-  geom_text_repel(aes(label = scales::percent(pct, accuracy = 1)),
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
             position = position_fill(vjust = 0.5),
-            min.segment.length = 0.1) +
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -198,7 +199,7 @@ ssa_inclusion_scales %>%
 ```{r agree/somewhat agree responses}
 ssa_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion %in% c("Agree", "Somewhat Agree")|peer_inclusion %in% c("Agree", "Somewhat Agree")) %>% 
+         staff_inclusion %in% c("Agree", "Somewhat Agree")) %>% 
   select(inclusion_text) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -211,7 +212,7 @@ ssa_inclusion_labeled %>%
 ```{r neutral responses}
 ssa_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion == "Neutral"|peer_inclusion == "Neutral") %>% 
+         staff_inclusion == "Neutral") %>% 
   select(inclusion_text) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -224,7 +225,7 @@ ssa_inclusion_labeled %>%
 ```{r disagree/somewhat disagree responses}
 ssa_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         staff_inclusion %in% c("Disagree", "Somewhat Disagree")|peer_inclusion %in% c("Disagree", "Somewhat Disagree")) %>% 
+         staff_inclusion %in% c("Disagree", "Somewhat Disagree")) %>% 
   select(inclusion_text) %>% 
   drop_na()  %>%
   distinct() %>% 

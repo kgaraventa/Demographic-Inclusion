@@ -137,11 +137,11 @@ ppsc_inclusion_scales %>%
   geom_col(show.legend = TRUE,
            position = "fill",
            width = 0.5) +
-  geom_text_repel(aes(label = scales::percent(pct, accuracy = 1)),
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
             position = position_fill(vjust = 0.5),
-            min.segment.length = 0.1) +
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -180,11 +180,11 @@ ppsc_inclusion_scales %>%
   geom_col(show.legend = TRUE,
            position = "fill",
            width = 0.5) +
-  geom_text_repel(aes(label = scales::percent(pct, accuracy = 1)),
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
             position = position_fill(vjust = 0.5),
-            min.segment.length = 0.1) +
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -205,7 +205,7 @@ ppsc_inclusion_scales %>%
 ```{r agree/somewhat agree responses}
 ppsc_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_trainers %in% c("Agree", "Somewhat Agree")|id_students %in% c("Agree", "Somewhat Agree")) %>% 
+         id_trainers %in% c("Agree", "Somewhat Agree")) %>% 
   select(id) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -218,7 +218,7 @@ ppsc_inclusion_labeled %>%
 ```{r neutral responses}
 ppsc_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_trainers == "Neutral"|id_students == "Neutral") %>% 
+         id_trainers == "Neutral") %>% 
   select(id) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -231,7 +231,7 @@ ppsc_inclusion_labeled %>%
 ```{r disagree/somewhat disagree responses}
 ppsc_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_trainers %in% c("Disagree", "Somewhat Disagree")|id_students %in% c("Disagree", "Somewhat Disagree")) %>% 
+         id_trainers %in% c("Disagree", "Somewhat Disagree")) %>% 
   select(id) %>% 
   drop_na()  %>%
   distinct() %>% 

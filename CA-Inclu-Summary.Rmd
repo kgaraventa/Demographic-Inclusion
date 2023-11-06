@@ -129,7 +129,8 @@ ca_inclusion_scales %>%
   geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
-            position = position_fill(vjust = 0.5)) +
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -171,7 +172,8 @@ ca_inclusion_scales %>%
   geom_text(aes(label = scales::percent(pct, accuracy = 1)),
             color = "black",
             size = 4,
-            position = position_fill(vjust = 0.5)) +
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
   scale_x_continuous(expand = expansion(add = c(0,0.2)),
                      labels = NULL) +
   scale_y_discrete(labels = NULL) +
@@ -192,7 +194,7 @@ ca_inclusion_scales %>%
 ```{r agree/somewhat agree responses}
 ca_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_staff %in% c("Agree", "Somewhat Agree")|id_peers %in% c("Agree", "Somewhat Agree")) %>% 
+         id_staff %in% c("Agree", "Somewhat Agree")) %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -205,7 +207,7 @@ ca_inclusion_labeled %>%
 ```{r neutral responses}
 ca_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_staff == "Neutral"|id_peers == "Neutral") %>% 
+         id_staff == "Neutral") %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
   distinct() %>% 
@@ -218,7 +220,7 @@ ca_inclusion_labeled %>%
 ```{r disagree/somewhat disagree responses}
 ca_inclusion_labeled %>% 
   filter(cohort == params$cohort,
-         id_staff %in% c("Disagree", "Somewhat Disagree")|id_peers %in% c("Disagree", "Somewhat Disagree")) %>% 
+         id_staff %in% c("Disagree", "Somewhat Disagree")) %>% 
   select(id_comment) %>% 
   drop_na()  %>%
   distinct() %>% 
