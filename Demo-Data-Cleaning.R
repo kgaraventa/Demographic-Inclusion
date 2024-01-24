@@ -7,15 +7,15 @@ library(janitor)
 
 # Import File -----------------------------------------------------------
 
-all_demographics <- read_excel(path = "I:\\Staff\\GSSW\\SALEM\\EVALUATION\\Demographics Data\\Demographics DB 23-25.xlsx",
+all_demographics <- read_excel(path = "G:\\Shared drives\\CWP Training Evaluation Protected\\Demographics Data\\Demographics DB 23-25.xlsx",
                                sheet = "data") %>% 
   clean_names()
 
 # Clean Data --------------------------------------------------------------
 
 clean_all_norace_demos <- all_demographics %>%
-  select(-(group_name:test_name)) %>% 
-    mutate(education = recode(education, "A" = "High School/GED",
+  select(-test_name) %>% 
+  mutate(education = recode(education, "A" = "High School/GED",
                             "B" = "Some College",
                             "C" = "Associates Degree",
                             "D" = "BA/BS in Social Work",
@@ -58,10 +58,19 @@ clean_all_norace_demos <- all_demographics %>%
                                       "D" = "3-5 years",
                                       "E" = "6-10 years",
                                       "F" = "> 10 years")) %>% 
-  mutate(length_cw_other_state = na_if(length_cw_other_state, "No answer")) %>% 
+  mutate(length_cw_other_state = na_if(length_cw_other_state, "No answer")) %>%
+  mutate(age = na_if(age, "No answer")) %>% 
+  mutate(age = na_if(age, "N/A")) %>% 
+  mutate(age = parse_number(age)) %>% 
+  mutate(age = round(age, digits = 0)) %>% 
   mutate(english = recode(english, "A" = "Yes",
                                   "B" = "No")) %>% 
   mutate(english = na_if(english, "No answer")) %>% 
+  mutate(start_date = na_if(start_date, "No answer")) %>%
+  mutate(start_date = na_if(start_date, "N/A")) %>%
+  mutate(start_date = na_if(start_date, "n/a")) %>%
+  mutate(start_date = as.numeric (start_date)) %>% 
+  mutate(start_date = as.Date(start_date, origin = "1899-12-30")) %>% 
   mutate(sss1 = recode(sss1, "A" = "Yes",
                           "B" = "No")) %>% 
   mutate(sss1 = na_if(sss1, "No answer")) %>% 
