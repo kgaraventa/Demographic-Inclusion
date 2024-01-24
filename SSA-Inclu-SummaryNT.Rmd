@@ -4,17 +4,13 @@ subtitle: "Training: Social Service Assistant Training"
 date: "July-September 2023"
 
 params:
-  cohort: "2325Q1"
+  quarter: "2023Q2"
 
 output: 
   html_document:
     df_print: paged
     fig_width: 8
 ---
-<!-- NEEDED INFORMATION - LOOK HERE
-To make this work, we need to change the names of the cohorts of the quarter to the same name.
-Do this in the "r excel file" chunk (starting line 67). Change name to YYYYQN (ex. 2325Q1).
-Update cohort parameter in YAML to new quarter cohort.-->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
@@ -59,19 +55,17 @@ psu_purple <- "#650360"
 ```
 
 ```{r excel file, include=FALSE}
-ssa_inclusion <- read_excel(path = "I:\\Staff\\GSSW\\SALEM\\DATA ENTRY\\SSA\\SSA DB 202307.xlsx",
+ssa_inclusion <- read_excel(path = "G:\\Shared drives\\CWP Training Evaluation Protected\\CWP Training\\SSA\\Data\\SSA DB 202307.xlsx",
                                    sheet = "overall") %>% 
   clean_names() %>% 
   select(cohort, id_trainer, id_other, id_comment) %>% 
-  mutate(cohort = as.character(cohort)) %>% 
-  mutate(cohort = if_else(cohort == "202307", "2325Q1", cohort)) %>% 
-  mutate(cohort = if_else(cohort == "202308", "2325Q1", cohort))
+  mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
 ```
 
 ```{r number respondents, include=FALSE}
 number_respondents_inclusion <- ssa_inclusion %>% 
-  filter(cohort == params$cohort) %>% 
-  count(cohort) %>% 
+  filter(quarter == params$quarter) %>% 
+  count(quarter) %>% 
   pull(n)
 ```
 
@@ -79,8 +73,8 @@ Number of Respondents in Quarter: **`r number_respondents_inclusion`**
 
 ```{r}
 ssa_inclusion_scales <- ssa_inclusion %>%
-  select(-id_comment) %>% 
-  pivot_longer(cols = -cohort,
+  select(-c(cohort, id_comment)) %>% 
+  pivot_longer(cols = -quarter,
                names_to = "scale",
                values_to = "rating",
                values_drop_na = TRUE)
@@ -88,7 +82,7 @@ ssa_inclusion_scales <- ssa_inclusion %>%
 
 ```{r trainer rating prep}
 avg_trainers <- ssa_inclusion_scales %>%
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          scale == "id_trainer") %>%
   drop_na() %>% 
   summarize(avg_trainers = mean(rating)) %>% 
@@ -107,14 +101,14 @@ Average = **`r avg_trainers`**
 
 ```{r trainers, fig.height = 2, fig.width = 7}
 ssa_inclusion_scales %>%
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          scale == "id_trainer") %>% 
   drop_na() %>% 
-  count(cohort, scale, rating) %>% 
+  count(quarter, scale, rating) %>% 
   mutate(pct = n / sum(n)) %>%
   mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
   ggplot(aes(x = pct,
-             y = cohort,
+             y = quarter,
              fill = rating)) +
   scale_fill_gradient2(limits = c(1,7),
                       low = psu_red,
@@ -145,7 +139,7 @@ ssa_inclusion_scales %>%
 
 ```{r peer rating prep}
 avg_peers <- ssa_inclusion_scales %>%
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          scale == "id_other") %>%
   drop_na() %>% 
   summarize(avg_peers = mean(rating)) %>% 
@@ -162,14 +156,14 @@ Average = **`r avg_peers`**
 
 ```{r peers, fig.height = 2, fig.width = 7}
 ssa_inclusion_scales %>%
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          scale == "id_other") %>% 
   drop_na() %>% 
-  count(cohort, scale, rating) %>% 
+  count(quarter, scale, rating) %>% 
   mutate(pct = n / sum(n)) %>%
   mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
   ggplot(aes(x = pct,
-             y = cohort,
+             y = quarter,
              fill = rating)) +
   scale_fill_gradient2(limits = c(1,7),
                       low = psu_red,
@@ -206,7 +200,7 @@ ssa_inclusion_scales %>%
 
 ```{r high end responses}
 ssa_inclusion %>% 
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          id_trainer %in% c("5", "6", "7")) %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
@@ -219,7 +213,7 @@ ssa_inclusion %>%
 
 ```{r middle response}
 ssa_inclusion %>% 
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          id_trainer == "4") %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
@@ -232,7 +226,7 @@ ssa_inclusion %>%
 
 ```{r low end responses}
 ssa_inclusion %>% 
-  filter(cohort == params$cohort,
+  filter(quarter == params$quarter,
          id_trainer %in% c("1", "2", "3")) %>% 
   select(id_comment) %>% 
   drop_na()  %>% 
