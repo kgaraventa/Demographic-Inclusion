@@ -1,0 +1,284 @@
+---
+title: "Demographic Summary Additional Report"
+subtitle: "Training: Well-being Needs of Children and Youth"
+date: "October - December 2023"
+
+params:
+  quarter: "2023Q2"
+  training: "WB"
+
+output: 
+  html_document:
+    df_print: paged
+    fig_width: 8
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      cache = FALSE)
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(ggthemes)
+library(hrbrthemes)
+library(readxl)
+library(ggtext)
+library(ggalt)
+library(ragg)
+library(systemfonts)
+library(gt)
+library(knitr)
+library(pagedown)
+library(dplyr)
+library(scales)
+library(lubridate)
+library(ggplot2)
+```
+
+```{r colors, include=FALSE}
+psu_green <- "#6d8d24"
+psu_electricgreen <- "#cfd82d"
+psu_forestgreen <- "#213921"
+psu_blue <- "#008ac1"
+psu_lightblue <- "#a5dff9"
+psu_sand <- "#e8d3a2"
+psu_stone <- "#8a8a67"
+psu_yellow <- "#ffc20e"
+psu_red <- "#e64927"
+psu_orange <- "#f68b1f"
+psu_purple <- "#650360"
+```
+
+```{r rds file, include=FALSE}
+all_demos <- readRDS("data/clean-all-demos.rds") %>% 
+  mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
+
+day1 <- read_excel(path = "G:\\Shared drives\\CWP Training Evaluation Protected\\Demographics Data\\Demographics DB 23-25.xlsx",
+                               sheet = "day1") %>% 
+  clean_names()
+```
+
+```{r number trainees, include=FALSE}
+number_trainees <- all_demos %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>% 
+  count(quarter) %>% 
+  pull(n)
+```
+
+Number of Trainees in Quarter: **`r number_trainees`**
+
+### Education Level
+
+```{r education level}
+education_level <- all_demos %>% 
+  select(quarter, training, education) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>%
+  mutate(education = fct_relevel(education, c("High School/GED", "Some College", "Associates Degree", "BA/BS in non-Social Sciences", "BA/BS in other Social Sciences", "BA/BS in Social Work", "MA/MS in non-Social Sciences", "MA/MS in other Social Sciences", "MA/MS in Social Work"))) %>% 
+  count(education) %>% 
+  drop_na(education) %>% 
+  mutate(percent_total = n/sum(n)) %>%
+  mutate(percent_total_formatted = percent(percent_total, accuracy = 1)) %>% 
+  mutate(education_pct = str_glue("{education}: {percent_total_formatted}"))
+
+ed_level_BABSOSS <- education_level %>% 
+  filter(education == "BA/BS in other Social Sciences")
+
+ed_level_nonBABSOSS <- education_level %>% 
+  filter(education != "BA/BS in other Social Sciences")
+
+education_level %>%   
+  ggplot(aes(x = percent_total,
+             y = education, 
+             fill = education)) +
+  geom_col(show.legend = FALSE,
+           fill = psu_green) +
+  geom_text(data = ed_level_nonBABSOSS,
+            aes(label = education_pct),
+            hjust = -0.02) +
+  geom_text(data = ed_level_BABSOSS,
+            aes(label = education_pct),
+            hjust = 1.02) +
+  theme_void() +
+  theme(axis.title = element_blank())
+```
+
+### Child Welfare Education Program
+
+```{r cwep}
+cwep <- all_demos %>% 
+  select(quarter, training, cwep_student) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>%
+  mutate(cwep_student = fct_relevel(cwep_student, c("Yes", "No"))) %>%
+  count(cwep_student) %>% 
+  drop_na()
+
+cwep %>%  
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(cwep_student = md("**CWEP Student**"),
+             n = md("**Number**"))
+```
+
+```{r cwep location}
+cwep_school <- all_demos %>% 
+  select(quarter, training, cwep_student, cwep_grad_location) %>% 
+  filter(quarter == params$quarter,
+         training == params$training,
+         cwep_student == "Yes")
+```
+
+```{r cwep_PSU, include=FALSE}
+number_cwep_PSU <- if("Portland State University" %in% cwep_school == TRUE){
+  cwep_school %>% 
+    filter(cwep_grad_location == "Portland State University") %>% 
+    count(cwep_grad_location) %>% 
+    pull(n)
+  } else if ("Portland State University" %in% cwep_school == FALSE){
+  print("0")
+}
+```
+
+Number of Trainees in CWEP at Portland State University: **`r number_cwep_PSU`**
+
+### Current Role
+
+```{r current role}
+role <- all_demos %>%
+  select(quarter, training, current_role) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>%
+  mutate(current_role = fct_relevel(current_role, c("Other", "Intern/Student", "Tribal Child Welfare Employee", "Not Assigned Yet", "Certification/Adoption", "Permanency", "CPS", "Screener"))) %>%
+  count(current_role) %>% 
+  drop_na(current_role) %>% 
+  mutate(percent_total = n/sum(n)) %>%
+  mutate(percent_total_formatted = percent(percent_total, accuracy = 1)) %>% 
+  mutate(role_pct = str_glue("{current_role}: {percent_total_formatted}"))
+
+role_CPS <- role %>% 
+  filter(current_role == "CPS")
+
+role_nonCPS <- role %>% 
+  filter(current_role != "CPS")
+
+role %>%   
+  ggplot(aes(x = percent_total,
+             y = current_role, 
+             fill = current_role)) +
+  geom_col(show.legend = FALSE,
+           fill = psu_purple) +
+  geom_text(data = role_nonCPS,
+            aes(label = role_pct),
+            hjust = -0.02) +
+  geom_text(data = role_CPS,
+            aes(label = role_pct),
+            hjust = 1.02,
+            color = "white") +
+  theme_void() +
+  theme(axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```
+
+### Public Child Welfare in Another State
+
+```{r child welfare other state}
+cw_other <- all_demos %>% 
+  select(quarter, training, cw_other_state) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>%
+  mutate(cw_other_state = fct_relevel(cw_other_state, c("Yes", "No"))) %>%
+  count(cw_other_state) %>% 
+  drop_na()
+
+cw_other %>%  
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(cw_other_state = md("**CW in Other State**"),
+             n = md("**Number**")) %>% 
+  cols_align(align = "center", 
+             columns = cw_other_state) %>% 
+  cols_align(align = "center", 
+             columns = n)
+```
+
+```{r length employed cw other state}
+cw_other_length <- all_demos %>% 
+  select(quarter, training, cw_other_state, length_cw_other_state) %>% 
+  filter(quarter == params$quarter,
+         training == params$training,
+         cw_other_state == "Yes") %>%
+  count(length_cw_other_state)
+
+cw_other_length %>%  
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(length_cw_other_state = md("**Time in CW in Other State**"),
+             n = md("**Number**")) %>% 
+  cols_align(align = "center", 
+             columns = length_cw_other_state) %>% 
+  cols_align(align = "center", 
+             columns = n)
+```
+
+\newpage
+### Age
+
+```{r age, include=FALSE}
+average_age <- all_demos %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>% 
+  select(quarter, training, age) %>% 
+  drop_na(age) %>%
+  summarize(avg_age = mean(age)) %>%
+  mutate(age_round = round(avg_age,1)) %>% 
+  pull(age_round)
+
+age_min <- all_demos %>% 
+  select(quarter, training, age) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>% 
+  drop_na() %>% 
+  summarize(agemin = min(age)) %>% 
+  pull(agemin)
+
+age_max <- all_demos %>% 
+  select(quarter, training, age) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>% 
+  drop_na() %>% 
+  summarize(agemax = max(age)) %>% 
+  pull(agemax)
+```
+
+Average = **`r average_age`** years old  
+Minimum = **`r age_min`** years old  
+Maximum = **`r age_max`** years old  
+
+### English as Primary Language
+
+```{r english primary language}
+eng_prim <- all_demos %>% 
+  select(quarter, training, english) %>% 
+  filter(quarter == params$quarter,
+         training == params$training) %>%
+  mutate(english = fct_relevel(english, c("Yes", "No"))) %>%
+  count(english) %>% 
+  drop_na()
+
+eng_prim %>%  
+  gt() %>% 
+  tab_options(table.align = "left") %>% 
+  cols_label(english = md("**English Primary Language**"),
+             n = md("**Number**")) %>% 
+  cols_align(align = "center", 
+             columns = english) %>% 
+  cols_align(align = "center", 
+             columns = n)
+```
