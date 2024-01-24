@@ -1,11 +1,11 @@
 ---
 title: "Demographic Summary"
-subtitle: "Training: Well-being Needs of Children and Youth"
-date: "October 2022-June 2023"
+subtitle: "Training: Certification and Adoption Worker Training"
+date: "October - December 2023"
 
 params:
-  quarter: "2325Q2"
-  training: "WB"
+  quarter: "2023Q2"
+  training: "CA"
 
 output: 
   html_document:
@@ -55,7 +55,8 @@ psu_purple <- "#650360"
 ```
 
 ```{r rds file, include=FALSE}
-all_demos <- readRDS("data/clean-all-demos.rds")
+all_demos <- readRDS("data/clean-all-demos.rds") %>% 
+  mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
 ```
 
 ## Demographics Questions
@@ -99,8 +100,8 @@ gender_demos %>%
              columns = percent_total) %>% 
   fmt_percent(columns = c(gender_id, percent_total), decimals = 1)
 ```
-*^'Missing Data' reflects that no selection was made by participant*
 
+*^'Missing Data' reflects that no selection was made by participant*
 
 **If you selected "prefer to describe," or if you'd like to provide more detail about your selection(s), please do so here:**
 
