@@ -79,7 +79,9 @@ number_registered <-
   google_sheets_meta %>% 
   filter(sheet_name == "registered") %>% 
   import_cwp_data_multiple_sheets() %>% 
-  mutate(registered = parse_number(registered))
+  mutate(registered = parse_number(registered)) %>% 
+  mutate(cohort = str_remove(cohort, "_1$|_2$|_3$")) %>% 
+  mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
 
 number_registered %>% 
   write_rds("data/number_registered.rds")
@@ -108,7 +110,9 @@ inclusion_data <-
     as.numeric
   )) %>% 
   mutate(response_id = str_glue("inclusion-{row_number()}")) %>% 
-  select(response_id, cohort, date, training_name, location, id_trainer, id_other, id_comment, id_code)
+  mutate(cohort = str_remove(cohort, "_1$|_2$|_3$")) %>% 
+  mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4"))) %>% 
+  select(response_id, quarter, date, training_name, location, id_trainer, id_other, id_comment, id_code)
 
 # Qualitative Codebook ----------------------------------------------------
 
@@ -134,7 +138,7 @@ qualitative_codebook <-
 
 id_ratings <- 
   inclusion_data %>% 
-  select(cohort, training_name, id_trainer, id_other) %>% 
+  select(response_id, quarter, training_name, id_trainer, id_other) %>% 
   pivot_longer(
     cols = c(id_trainer, id_other),
     names_to = "question",
@@ -151,7 +155,7 @@ id_ratings <-
 
 id_qual_comments <-
   inclusion_data %>% 
-  select(response_id, cohort, training_name, id_comment) %>%
+  select(response_id, quarter, training_name, id_comment) %>%
   mutate(id_comment = na_if(id_comment, "N/A")) %>% 
   drop_na(id_comment)
 
@@ -163,7 +167,7 @@ id_qual_comments <-
 
 id_qual_codes <- 
   inclusion_data %>% 
-  select(response_id, cohort, training_name, id_comment, id_code) %>%
+  select(response_id, quarter, training_name, id_comment, id_code) %>%
   mutate(id_comment = na_if(id_comment, "N/A")) %>% 
   drop_na(id_comment) %>% 
   separate_longer_delim(id_code,
