@@ -294,22 +294,36 @@ positive_theme_count %>%
 ```
 
 ```{r positive responses}
-tips_inclusion_comments %>% 
-  filter(str_detect(id_code, ".1$")) %>% 
-  select(id_comment) %>% 
-  drop_na()  %>% 
-  distinct() %>% 
-  gt() %>% 
-  tab_options(table.align = "left",
-              column_labels.font.size = 20) %>% 
-  cols_label(
-    id_comment = md("**Comments**")) %>%
-  tab_style_body(
-    style = cell_text(style = "italic",
-              weight = "bold"),
-    pattern = "^XX"
-  ) %>% 
-  tab_source_note(source_note = md("XX notes a highlighted comment"))
+tips_inclusion_comments_positive <- tips_inclusion_comments %>% 
+  filter(str_detect(id_code, ".1$"))
+
+if (sum(str_detect(tips_inclusion_comments_positive$id_comment, "^XX")) > 0) {
+  tips_inclusion_comments_positive %>% 
+    select(id_comment) %>% 
+    drop_na()  %>% 
+    distinct() %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**")) %>%
+    tab_style_body(
+      style = cell_text(style = "italic",
+                        weight = "bold"),
+      pattern = "^XX"
+    ) %>% 
+    tab_source_note(source_note = md("XX notes a highlighted comment"))
+} else {
+  tips_inclusion_comments_positive %>%  
+    select(id_comment) %>% 
+    drop_na()  %>% 
+    distinct() %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**"))
+}
 ```
 
 \newpage
@@ -397,20 +411,34 @@ improve_theme_count %>%
 ```
 
 ```{r improve responses}
-tips_inclusion_comments %>% 
-  filter(str_detect(id_code, ".2$")) %>% 
-  select(id_comment) %>% 
-  drop_na()  %>% 
-  distinct() %>% 
-  gt() %>% 
-  tab_options(table.align = "left",
-              column_labels.font.size = 20) %>% 
-  cols_label(
-    id_comment = md("**Comments**")) %>%
-  tab_style_body(
-    style = cell_text(style = "italic",
-              weight = "bold"),
-    pattern = "^XX"
-  ) %>% 
-  tab_source_note(source_note = md("XX notes a highlighted comment"))
+tips_inclusion_comments_improve <- tips_inclusion_comments %>% 
+  filter(str_detect(id_code, ".2$"))
+
+if (sum(str_detect(tips_inclusion_comments_improve$id_comment, "^XX")) > 0) {
+  tips_inclusion_comments_improve %>% 
+    select(id_comment) %>% 
+    drop_na()  %>% 
+    distinct() %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**")) %>%
+    tab_style_body(
+      style = cell_text(style = "italic",
+                        weight = "bold"),
+      pattern = "^XX"
+    ) %>% 
+    tab_source_note(source_note = md("XX notes a highlighted comment"))
+} else {
+  tips_inclusion_comments_improve %>%  
+    select(id_comment) %>% 
+    drop_na()  %>% 
+    distinct() %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**"))
+}
 ```
