@@ -1,13 +1,13 @@
-
 # Loading Packages --------------------------------------------------------
 
 library(tidyverse)
-library(readxl)
+library(googledrive)
+library(googlesheets4)
 library(janitor)
 
 # Import File -----------------------------------------------------------
 
-all_demographics <- read_excel(path = "G:\\Shared drives\\CWP Training Evaluation Protected\\Demographics Data\\Demographics DB 23-25.xlsx",
+all_demographics <- read_sheet("https://docs.google.com/spreadsheets/d/1aNWF7AojvdaRg7gaxfztgbog13QVfwIcMqOaiAEiDwM/edit#gid=1265905422",
                                sheet = "data") %>% 
   clean_names()
 
@@ -59,13 +59,16 @@ clean_all_norace_demos <- all_demographics %>%
                                       "E" = "6-10 years",
                                       "F" = "> 10 years")) %>% 
   mutate(length_cw_other_state = na_if(length_cw_other_state, "No answer")) %>%
+  mutate(age = as.character(age)) %>% 
   mutate(age = na_if(age, "No answer")) %>% 
   mutate(age = na_if(age, "N/A")) %>% 
   mutate(age = parse_number(age)) %>% 
+  mutate(age = as.numeric(age)) %>% 
   mutate(age = round(age, digits = 0)) %>% 
   mutate(english = recode(english, "A" = "Yes",
                                   "B" = "No")) %>% 
   mutate(english = na_if(english, "No answer")) %>% 
+  mutate(start_date = as.character(start_date)) %>% 
   mutate(start_date = na_if(start_date, "No answer")) %>%
   mutate(start_date = na_if(start_date, "N/A")) %>%
   mutate(start_date = na_if(start_date, "n/a")) %>%
