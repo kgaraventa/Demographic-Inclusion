@@ -1,11 +1,11 @@
 ---
 title: "Inclusion Summary"
-subtitle: "Training: Certification and Adoption Worker Training"
-date: "October - December 2023"
+subtitle: "Training: Well-being Needs of Children and Youth"
+date: "January - March 2024"
 
 params:
-  quarter: "2023Q2"
-  training: "EE"
+  quarter: "2024Q3"
+  training: "WB"
 
 output: 
   html_document:
@@ -202,7 +202,7 @@ id_ratings_filtered %>%
 
 ### Open-Ended Question Responses
 
-```{r positive comment count}
+```{r positive comment count, include=FALSE}
 number_positive <- if (sum(str_detect(id_qual_comments_filtered$sentiment, "positive"), na.rm = TRUE) > 0) {
   id_qual_comments_filtered %>%
     filter(str_detect(sentiment, "positive")) %>%
@@ -245,8 +245,8 @@ positive_allelse <- positive_theme_count %>%
 
 ```{r positive theme plot, fig.height = 4.5, fig.width = 6.5}
 positive_theme_count %>% 
-  mutate(subgroup = fct_inorder(sub_group)) %>%
-  mutate(subgroup = fct_rev(sub_group)) %>%
+  mutate(sub_group = fct_inorder(sub_group)) %>%
+  mutate(sub_group = fct_rev(sub_group)) %>%
   ggplot(aes(x = n,
              y = sub_group, 
              fill = sub_group)) +
@@ -280,7 +280,7 @@ positive_theme_count %>%
         panel.grid.minor.x = element_blank(),
         panel.grid.major.y = element_blank(),
         axis.title = element_blank(),
-        plot.title = element_markdown(face = "bold", hjust = -.15))
+        plot.title = element_markdown(face = "bold", hjust = .05))
 ```
 
 ```{r positive responses}
