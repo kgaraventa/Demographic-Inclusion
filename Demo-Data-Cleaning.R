@@ -14,7 +14,8 @@ drive_auth(Sys.getenv("GOOGLE_SHEETS_EMAIL"))
 # Import File -----------------------------------------------------------
 
 all_demographics <- read_sheet("https://docs.google.com/spreadsheets/d/1aNWF7AojvdaRg7gaxfztgbog13QVfwIcMqOaiAEiDwM/edit#gid=1265905422",
-                               sheet = "data") %>% 
+                               sheet = "data",
+                               col_types = "c") %>% 
   clean_names()
 
 # Clean Data --------------------------------------------------------------
@@ -74,12 +75,10 @@ clean_all_norace_demos <- all_demographics %>%
   mutate(english = recode(english, "A" = "Yes",
                                   "B" = "No")) %>% 
   mutate(english = na_if(english, "No answer")) %>% 
-  mutate(start_date = as.character(start_date)) %>% 
   mutate(start_date = na_if(start_date, "No answer")) %>%
   mutate(start_date = na_if(start_date, "N/A")) %>%
   mutate(start_date = na_if(start_date, "n/a")) %>%
-  mutate(start_date = as.numeric (start_date)) %>% 
-  mutate(start_date = as.Date(start_date, origin = "1899-12-30")) %>% 
+  mutate(start_date = mdy(start_date)) %>% 
   mutate(sss1 = recode(sss1, "A" = "Yes",
                           "B" = "No")) %>% 
   mutate(sss1 = na_if(sss1, "No answer")) %>% 
