@@ -38,6 +38,7 @@ library(dplyr)
 library(scales)
 library(lubridate)
 library(ggplot2)
+library(googlesheets4)
 ```
 
 ```{r colors, include=FALSE}
@@ -58,7 +59,7 @@ psu_purple <- "#650360"
 all_demos <- readRDS("data/clean-all-demos.rds") %>% 
   mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
 
-day1 <- read_excel(path = "G:\\Shared drives\\CWP Training Evaluation Protected\\Demographics Data\\Demographics DB 23-25.xlsx",
+day1 <- read_sheet("https://docs.google.com/spreadsheets/d/1aNWF7AojvdaRg7gaxfztgbog13QVfwIcMqOaiAEiDwM/edit#gid=291857743",
                                sheet = "day1") %>% 
   clean_names()
 ```
