@@ -5,6 +5,12 @@ library(googledrive)
 library(googlesheets4)
 library(janitor)
 
+# Authentication ----------------------------------------------------------
+
+Sys.getenv("GOOGLE_SHEETS_EMAIL")
+
+drive_auth(Sys.getenv("GOOGLE_SHEETS_EMAIL"))
+
 # Import File -----------------------------------------------------------
 
 all_demographics <- read_sheet("https://docs.google.com/spreadsheets/d/1aNWF7AojvdaRg7gaxfztgbog13QVfwIcMqOaiAEiDwM/edit#gid=1265905422",
