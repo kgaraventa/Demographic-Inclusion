@@ -6,6 +6,12 @@ library(googlesheets4)
 library(janitor)
 
 
+# Authentication ----------------------------------------------------------
+
+Sys.getenv("GOOGLE_SHEETS_EMAIL")
+
+drive_auth(Sys.getenv("GOOGLE_SHEETS_EMAIL"))
+
 # Create Google Sheets Mega -----------------------------------------------
 
 google_sheets_urls <-
@@ -80,7 +86,8 @@ number_registered <-
   filter(sheet_name == "registered") %>% 
   import_cwp_data_multiple_sheets() %>% 
   mutate(registered = parse_number(registered)) %>% 
-  mutate(cohort = str_remove(cohort, "_1$|_2$|_3$")) %>% 
+  mutate(cohort = str_remove(cohort, "_1$|_2$|_3$")) %>%
+  mutate(cohort = str_remove(cohort, "A$|B$")) %>% 
   mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4")))
 
 number_registered %>% 
@@ -111,6 +118,7 @@ inclusion_data <-
   )) %>% 
   mutate(response_id = str_glue("inclusion-{row_number()}")) %>% 
   mutate(cohort = str_remove(cohort, "_1$|_2$|_3$")) %>% 
+  mutate(cohort = str_remove(cohort, "A$|B$")) %>% 
   mutate(quarter = str_replace_all(cohort, c("07$|08$|09$" = "Q1", "10$|11$|12$" = "Q2", "01$|02$|03$" = "Q3", "04$|05$|06$" = "Q4"))) %>% 
   select(response_id, quarter, date, training_name, location, id_trainer, id_other, id_comment, id_code)
 
@@ -124,7 +132,7 @@ qualitative_codebook <-
   pivot_longer(
     cols = c(code_positive, code_negative),
     names_to = "sentiment",
-    values_to = "comment_code"
+    values_to = "id_code"
   ) %>% 
   mutate(sentiment = str_remove(sentiment, "code_"))
 
@@ -155,9 +163,13 @@ id_ratings <-
 
 id_qual_comments <-
   inclusion_data %>% 
-  select(response_id, quarter, training_name, id_comment) %>%
+  select(response_id, quarter, training_name, id_comment, id_code) %>%
   mutate(id_comment = na_if(id_comment, "N/A")) %>% 
-  drop_na(id_comment)
+  drop_na(id_comment) %>% 
+  separate_longer_delim(id_code,
+                        delim = ", ") %>% 
+  mutate(sentiment = str_extract(id_code, ".1$|.2$")) %>% 
+  mutate(sentiment = str_replace_all(sentiment, c(".1$" = "positive", ".2$" = "negative")))
 
 id_qual_comments %>% 
   write_rds("data/id_qual_comments.rds")
@@ -172,7 +184,11 @@ id_qual_codes <-
   drop_na(id_comment) %>% 
   separate_longer_delim(id_code,
                         delim = ", ") %>% 
-  drop_na(id_code)
+  drop_na(id_code) %>% 
+  left_join(
+    qualitative_codebook,
+    join_by(id_code)
+  )
 
 id_qual_codes %>% 
   write_rds("data/id_qual_codes.rds")
