@@ -1,0 +1,441 @@
+---
+title: "Inclusion Summary"
+subtitle: "Training: Certification and Adoption Worker Training"
+date: "October - December 2023"
+
+params:
+  quarter: "2023Q2"
+  training: "EE"
+
+output: 
+  html_document:
+    df_print: paged
+    fig_width: 8
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      cache = FALSE)
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(ggthemes)
+library(hrbrthemes)
+library(ggtext)
+library(ggalt)
+library(ragg)
+library(systemfonts)
+library(gt)
+library(knitr)
+library(pagedown)
+library(dplyr)
+library(scales)
+library(lubridate)
+library(ggplot2)
+library(ggrepel)
+library(googledrive)
+library(googlesheets4)
+library(here)
+```
+
+```{r colors, include=FALSE}
+psu_green <- "#6d8d24"
+psu_electricgreen <- "#cfd82d"
+psu_forestgreen <- "#213921"
+psu_blue <- "#008ac1"
+psu_lightblue <- "#a5dff9"
+psu_sand <- "#e8d3a2"
+psu_stone <- "#8a8a67"
+psu_yellow <- "#ffc20e"
+psu_red <- "#e64927"
+psu_orange <- "#f68b1f"
+psu_purple <- "#650360"
+```
+
+```{r import and filter rds files, include=FALSE}
+filter_session_data <- function(raw_data) {
+  raw_data %>% 
+    filter(training_name == params$training) %>% 
+    filter(quarter == params$quarter)
+}
+
+id_ratings_filtered <-
+  read_rds(here("data/id_ratings.rds")) %>% 
+  filter_session_data()
+
+id_qual_comments_filtered <-
+  read_rds(here("data/id_qual_comments.rds")) %>% 
+  filter_session_data()
+
+id_qual_codes_filtered <-
+  read_rds(here("data/id_qual_codes.rds")) %>% 
+  filter_session_data()
+
+number_registered_filtered <-
+  read_rds(here("data/number_registered.rds")) %>% 
+  filter_session_data()
+```
+
+```{r number respondents, include=FALSE}
+number_respondents_inclusion <- id_ratings_filtered %>% 
+  distinct(response_id, quarter) %>% 
+  count(quarter) %>% 
+  pull(n)
+```
+
+Number of Respondents in Quarter: **`r number_respondents_inclusion`**
+
+```{r trainer rating prep}
+avg_trainers <- id_ratings_filtered %>%
+  filter(question == "id_trainer") %>%
+  drop_na() %>% 
+  summarize(avg_trainers = mean(rating)) %>% 
+  mutate(rating_round = round(avg_trainers,1)) %>%
+  pull(rating_round)
+```
+
+$~$
+
+$~$
+
+#### I felt respected based on my identities by <span style = 'color: #008ac1'>trainers/staff</span>
+7-point anchored scale from Not at all Respected to Extremely Respected
+
+Average = **`r avg_trainers`**
+
+```{r trainers, fig.height = 2, fig.width = 7}
+id_ratings_filtered %>%
+  filter(question == "id_trainer") %>% 
+  drop_na() %>% 
+  count(quarter, question, rating) %>% 
+  mutate(pct = n / sum(n)) %>%
+  mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
+  ggplot(aes(x = pct,
+             y = quarter,
+             fill = rating)) +
+  scale_fill_gradient2(limits = c(1,7),
+                      low = psu_red,
+                      mid = psu_sand,
+                      high = psu_forestgreen,
+                      midpoint = 4,
+                      space = "Lab",
+                      guide = "colorbar",
+                      aesthetics = "fill") +
+  geom_col(show.legend = TRUE,
+           position = "fill",
+           width = 0.5) +
+  geom_text(aes(label = pct_display),
+            color = "white",
+            size = 4,
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
+  scale_x_continuous(expand = expansion(add = c(0,0.2)),
+                     labels = NULL) +
+  scale_y_discrete(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```
+
+```{r peer rating prep}
+avg_peers <- id_ratings_filtered %>%
+  filter(question == "id_other") %>%
+  drop_na() %>% 
+  summarize(avg_peers = mean(rating)) %>% 
+  mutate(rating_round = round(avg_peers,1)) %>%
+  pull(rating_round)
+```
+
+$~$
+
+#### I felt respected based on my identities by <span style = 'color: #650360'>peers</span>
+7-point anchored scale from Not at all Respected to Extremely Respected
+
+Average = **`r avg_peers`**
+
+```{r peers, fig.height = 2, fig.width = 7}
+id_ratings_filtered %>%
+  filter(question == "id_other") %>% 
+  drop_na() %>% 
+  count(quarter, question, rating) %>% 
+  mutate(pct = n / sum(n)) %>%
+  mutate(pct_display = str_glue("{rating} \n({percent(pct, accuracy = 1)})")) %>% 
+  ggplot(aes(x = pct,
+             y = quarter,
+             fill = rating)) +
+  scale_fill_gradient2(limits = c(1,7),
+                      low = psu_red,
+                      mid = psu_sand,
+                      high = psu_forestgreen,
+                      midpoint = 4,
+                      space = "Lab",
+                      guide = "colorbar",
+                      aesthetics = "fill") +
+  geom_col(show.legend = TRUE,
+           position = "fill",
+           width = 0.5) +
+  geom_text(aes(label = pct_display),
+            color = "white",
+            size = 4,
+            position = position_fill(vjust = 0.5),
+            check_overlap = TRUE) +
+  scale_x_continuous(expand = expansion(add = c(0,0.2)),
+                     labels = NULL) +
+  scale_y_discrete(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold"))
+```
+
+\newpage
+
+### Open-Ended Question Responses
+
+```{r positive comment count}
+number_positive <- if (sum(str_detect(id_qual_comments_filtered$sentiment, "positive"), na.rm = TRUE) > 0) {
+  id_qual_comments_filtered %>%
+    filter(str_detect(sentiment, "positive")) %>%
+    distinct(id_comment, .keep_all = TRUE) %>% 
+    count(quarter) %>%
+    pull(n)
+} else {
+  print("0")
+}
+```
+
+```{r positive codes count, include=FALSE}
+number_positive_codes <- if (sum(str_detect(id_qual_codes_filtered$sentiment, "positive"), na.rm = TRUE) > 0) {
+  id_qual_codes_filtered %>%
+    filter(str_detect(sentiment, "positive")) %>%
+    count(quarter) %>%
+    pull(n)
+} else {
+  print("0")
+}
+```
+
+#### Positive Responses  
+Number of Responses Received: **`r number_positive`**  
+Number of Themes Within Comments: **`r number_positive_codes`**
+
+```{r positive prep}
+positive_theme_count <- id_qual_codes_filtered %>% 
+  filter(str_detect(sentiment, "positive")) %>% 
+  count(sub_group) %>% 
+  arrange(desc(n))
+
+positive_trainpeer <- positive_theme_count %>% 
+  filter(sub_group %in% c("Trainer", "Peer"))
+
+positive_allelse <- positive_theme_count %>% 
+  filter(sub_group != "Trainer",
+         sub_group != "Peer")
+```
+
+```{r positive theme plot, fig.height = 4.5, fig.width = 6.5}
+positive_theme_count %>% 
+  mutate(subgroup = fct_inorder(sub_group)) %>%
+  mutate(subgroup = fct_rev(sub_group)) %>%
+  ggplot(aes(x = n,
+             y = sub_group, 
+             fill = sub_group)) +
+  scale_fill_manual(values = c(
+                     "General" = psu_stone,
+                     "Trainer" = psu_forestgreen,
+                     "Peer" = psu_purple,
+                     "Classroom Dynamics" = psu_green,
+                     "Specific or Individual Interaction" = psu_blue,
+                     "Bias" = psu_red,
+                     "SOGI" = psu_yellow,
+                     "Race/Ethnicity" = psu_orange,
+                     "Inclusivity" = psu_sand,
+                     "Highlighted Comment" = psu_electricgreen)) +
+  geom_col(show.legend = FALSE,
+           position = "dodge") +
+  geom_text(data = positive_allelse,
+              aes(label = n),
+              color = "black",
+              hjust = 1.1,
+              size = 5) +
+  geom_text(data = positive_trainpeer,
+              aes(label = n),
+              color = "white",
+              hjust = 1.1,
+              size = 5) +
+  labs(title = "Common Themes") +
+  scale_x_continuous(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold", hjust = -.15))
+```
+
+```{r positive responses}
+positive_comments <- id_qual_comments_filtered %>% 
+  filter(str_detect(sentiment, "positive")) %>% 
+  mutate(id_code = as.numeric(id_code)) %>% 
+  group_by(response_id) %>% 
+  summarise(across(everything(), last))
+
+if (sum(str_detect(positive_comments$id_code, "909.1")) > 0) {
+  positive_comments %>% 
+    select(id_comment, id_code) %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**")) %>%
+    tab_style(
+      style = list(cell_text(style = "italic",
+                        weight = "bold")
+                   ),
+      locations = cells_body(
+        columns = id_comment,
+        rows = id_code >= "909.1"
+      )
+    ) %>% 
+    cols_hide(id_code) %>% 
+    tab_source_note(source_note = md("^Bold & italicized notes a highlighted comment"))
+} else {
+  positive_comments %>%  
+    select(id_comment) %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**"))
+}
+```
+
+\newpage
+
+```{r improve comment count, include=FALSE}
+number_improve <- if (sum(str_detect(id_qual_comments_filtered$sentiment, "negative"), na.rm = TRUE) > 0) {
+  id_qual_comments_filtered %>%
+    filter(str_detect(sentiment, "negative")) %>%
+    distinct(id_comment, .keep_all = TRUE) %>% 
+    count(quarter) %>%
+    pull(n)
+} else {
+  print("0")
+}
+```
+
+```{r improve codes count, include=FALSE}
+number_improve_codes <- if (sum(str_detect(id_qual_codes_filtered$sentiment, "negative"), na.rm = TRUE) > 0) {
+  id_qual_codes_filtered %>%
+    filter(str_detect(sentiment, "negative")) %>%
+    count(quarter) %>%
+    pull(n)
+} else {
+  print("0")
+}
+```
+
+#### To Improve Responses  
+Number of Responses Received: **`r number_improve`**  
+Number of Themes Within Comments: **`r number_improve_codes`**
+
+```{r improve prep}
+improve_theme_count <- id_qual_codes_filtered %>% 
+  filter(str_detect(sentiment, "negative")) %>% 
+  count(sub_group) %>% 
+  arrange(desc(n))
+
+improve_trainpeer <- improve_theme_count %>% 
+  filter(sub_group %in% c("Trainer", "Peer"))
+
+improve_allelse <- improve_theme_count %>% 
+  filter(sub_group != "Trainer",
+         sub_group != "Peer")
+```
+
+```{r improve theme plot, fig.height = 4.5, fig.width = 6.5}
+improve_theme_count %>% 
+  mutate(sub_group = fct_inorder(sub_group)) %>%
+  mutate(sub_group = fct_rev(sub_group)) %>%
+  ggplot(aes(x = n,
+             y = sub_group, 
+             fill = sub_group)) +
+  scale_fill_manual(values = c(
+                     "General" = psu_stone,
+                     "Trainer" = psu_forestgreen,
+                     "Peer" = psu_purple,
+                     "Classroom Dynamics" = psu_green,
+                     "Specific or Individual Interaction" = psu_blue,
+                     "Bias" = psu_red,
+                     "SOGI" = psu_yellow,
+                     "Race/Ethnicity" = psu_orange,
+                     "Inclusivity" = psu_sand,
+                     "Highlighted Comment" = psu_electricgreen)) +
+  geom_col(show.legend = FALSE,
+           position = "dodge") +
+  geom_text(data = improve_allelse,
+              aes(label = n),
+              color = "black",
+              hjust = 1.5,
+              size = 5) +
+  geom_text(data = improve_trainpeer,
+              aes(label = n),
+              color = "white",
+              hjust = 1.5,
+              size = 5) +
+  labs(title = "Common Themes") +
+  scale_x_continuous(labels = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_markdown(face = "bold", hjust = .05))
+```
+
+```{r improve responses}
+improve_comments <- id_qual_comments_filtered %>% 
+  filter(str_detect(sentiment, "negative")) %>% 
+  mutate(id_code = as.numeric(id_code)) %>% 
+  group_by(response_id) %>% 
+  summarise(across(everything(), last))
+
+if (sum(str_detect(improve_comments$id_code, "909.2")) > 0) {
+  improve_comments %>% 
+    select(id_comment, id_code) %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**")) %>%
+    tab_style(
+      style = list(cell_text(style = "italic",
+                        weight = "bold")
+                   ),
+      locations = cells_body(
+        columns = id_comment,
+        rows = id_code >= "909.2"
+      )
+    ) %>% 
+    cols_hide(id_code) %>% 
+    tab_source_note(source_note = md("^Bold & italicized notes a highlighted comment"))
+} else {
+  improve_comments %>%  
+    select(id_comment) %>% 
+    gt() %>% 
+    tab_options(table.align = "left",
+                column_labels.font.size = 20) %>% 
+    cols_label(
+      id_comment = md("**Comments**"))
+}
+```
