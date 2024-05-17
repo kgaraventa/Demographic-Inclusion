@@ -1,15 +1,12 @@
 # Loading Packages --------------------------------------------------------
 
 library(tidyverse)
-library(googledrive)
 library(googlesheets4)
 library(janitor)
 
 # Authentication ----------------------------------------------------------
 
-Sys.getenv("GOOGLE_SHEETS_EMAIL")
-
-drive_auth(Sys.getenv("GOOGLE_SHEETS_EMAIL"))
+gs4_auth(Sys.getenv("GOOGLE_SHEETS_EMAIL"))
 
 # Import File -----------------------------------------------------------
 
